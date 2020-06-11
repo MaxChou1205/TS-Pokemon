@@ -9,7 +9,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const container = document.querySelector("#app");
-const pokemons = 100;
+const numberOfPokemons = 100;
+let pokemons = [];
 const showPokemon = (pokemon) => {
     let output = `
           <div class="card">
@@ -21,28 +22,41 @@ const showPokemon = (pokemon) => {
       `;
     container.innerHTML += output;
 };
-const getPokemon = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    // const data: Response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
-    fetch(`https://pokeapi.co/api/v2/pokemon/${id}`)
-        .then((data) => data.json())
-        .then((pokemon) => {
-        // console.log(data);
-        // const pokemon: any = data.json()
-        const pokemonType = pokemon.types
-            .map((poke) => poke.type.name)
-            .join(", ");
-        const transformedPokemon = {
-            id: pokemon.id,
-            name: pokemon.name,
-            image: `${pokemon.sprites.front_default}`,
-            type: pokemonType,
-        };
-        showPokemon(transformedPokemon);
+const showPokemons = (pokemons) => {
+    console.log("pokemons", pokemons);
+    pokemons.forEach((pokemon) => {
+        let output = `
+              <div class="card">
+                  <span class="card--id">#${pokemon.id}</span>
+                  <img class="card--image" src=${pokemon.image} alt=${pokemon.name} />
+                  <h1 class="card--name">${pokemon.name}</h1>
+                  <span class="card--details">${pokemon.type}</span>
+              </div>
+          `;
+        container.innerHTML += output;
     });
+};
+const getPokemon = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const data = yield fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+    const pokemon = yield data.json();
+    const pokemonType = pokemon.types
+        .map((poke) => poke.type.name)
+        .join(", ");
+    const transformedPokemon = {
+        id: pokemon.id,
+        name: pokemon.name,
+        image: `${pokemon.sprites.front_default}`,
+        type: pokemonType,
+    };
+    return transformedPokemon;
+    // showPokemon(transformedPokemon);
 });
 const fetchData = () => __awaiter(void 0, void 0, void 0, function* () {
-    for (let i = 1; i <= pokemons; i++) {
-        yield getPokemon(i);
+    for (let i = 1; i <= numberOfPokemons; i++) {
+        pokemons.push(yield getPokemon(i));
     }
 });
-fetchData();
+fetchData().then(() => {
+    pokemons.sort((a, b) => a.id > b.id ? 1 : -1);
+    showPokemons(pokemons);
+});
